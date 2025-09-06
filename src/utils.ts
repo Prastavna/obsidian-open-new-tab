@@ -1,5 +1,5 @@
 import { TFile } from 'obsidian';
-import { OpenInNewTabSettings, ExtendedApp } from './types';
+import { OpenInNewTabSettings, ExtendedApp, TagInfo } from './types';
 
 export class FileUtils {
     private app: ExtendedApp;
@@ -70,7 +70,7 @@ export class FileUtils {
         const fileTags = fileCache?.frontmatter?.tags || [];
 
         // Also check for inline tags
-        const inlineTags = fileCache?.tags?.map((tag: { tag: string }) => tag.tag) || [];
+        const inlineTags = fileCache?.tags?.map((tag: TagInfo) => tag.tag) || [];
 
         // Combine all tags
         const allFileTags = [...fileTags, ...inlineTags].map(tag => tag.toLowerCase());

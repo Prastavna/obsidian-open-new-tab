@@ -1,4 +1,13 @@
-import { App, Plugin, TFile, WorkspaceLeaf, Component } from 'obsidian';
+import { App, Plugin, TFile, WorkspaceLeaf, Component, View, Modal } from 'obsidian';
+
+// Obsidian API types that we use
+export type ObsidianApp = App;
+export type ObsidianPlugin = Plugin;
+export type ObsidianTFile = TFile;
+export type ObsidianWorkspaceLeaf = WorkspaceLeaf;
+export type ObsidianComponent = Component;
+export type ObsidianView = View;
+export type ObsidianModal = Modal;
 
 // Settings interface (defined here to avoid circular imports)
 export interface OpenInNewTabSettings {
@@ -23,24 +32,17 @@ export const DEFAULT_SETTINGS: OpenInNewTabSettings = {
     tagsForNewTab: ''
 };
 
-// Obsidian API types that we use
-export type ObsidianApp = App;
-export type ObsidianPlugin = Plugin;
-export type ObsidianTFile = TFile;
-export type ObsidianWorkspaceLeaf = WorkspaceLeaf;
-export type ObsidianComponent = Component;
-
 // Custom interfaces for our plugin
 export interface FileExplorerView {
-    fileItems?: any;
+    fileItems?: Record<string, any>; // File items mapping
     onFileClick?: (file: TFile, event: MouseEvent) => void;
     handleFileClick?: (file: TFile, event: MouseEvent) => void;
-    containerEl?: Element;
+    containerEl?: HTMLElement;
     _newTabPatched?: boolean;
 }
 
 export interface SearchView {
-    resultDomLookup?: any;
+    resultDomLookup?: Record<string, any>; // Search result DOM lookup
     onFileClick?: (file: TFile, event: MouseEvent) => void;
     _newTabPatched?: boolean;
 }

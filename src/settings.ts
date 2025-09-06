@@ -1,9 +1,10 @@
 import { PluginSettingTab, Setting, App, Plugin } from 'obsidian';
+import { OpenInNewTabSettings } from './types';
 
 export class OpenInNewTabSettingTab extends PluginSettingTab {
-    plugin: Plugin & { settings: any; saveSettings: () => Promise<void> };
+    plugin: Plugin & { settings: OpenInNewTabSettings; saveSettings: () => Promise<void> };
 
-    constructor(app: App, plugin: Plugin & { settings: any; saveSettings: () => Promise<void> }) {
+    constructor(app: App, plugin: Plugin & { settings: OpenInNewTabSettings; saveSettings: () => Promise<void> }) {
         super(app, plugin);
         this.plugin = plugin;
     }

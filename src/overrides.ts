@@ -1,17 +1,17 @@
-import { TFile, Notice, Plugin } from 'obsidian';
+import { TFile, Notice, Plugin, WorkspaceLeaf } from 'obsidian';
 import { FileUtils } from './utils';
-import { OpenInNewTabSettings, ExtendedApp } from './types';
+import { OpenInNewTabSettings, ExtendedApp, FileExplorerView, SearchView } from './types';
 
 export class OverrideManager {
     private app: ExtendedApp;
-    private plugin: Plugin & { settings: any; saveSettings: () => Promise<void> };
+    private plugin: Plugin & { settings: OpenInNewTabSettings; saveSettings: () => Promise<void> };
     private settings: OpenInNewTabSettings;
     private fileUtils: FileUtils;
     private originalOpenFile: any;
     private originalOpenLinkText: any;
     private fileExplorerHandler: any;
 
-    constructor(app: ExtendedApp, plugin: Plugin & { settings: any; saveSettings: () => Promise<void> }, settings: OpenInNewTabSettings, fileUtils: FileUtils) {
+    constructor(app: ExtendedApp, plugin: Plugin & { settings: OpenInNewTabSettings; saveSettings: () => Promise<void> }, settings: OpenInNewTabSettings, fileUtils: FileUtils) {
         this.app = app;
         this.plugin = plugin;
         this.settings = settings;
@@ -100,7 +100,7 @@ export class OverrideManager {
         // Get file explorer leaf
         const fileExplorers = this.app.workspace.getLeavesOfType('file-explorer');
 
-        fileExplorers.forEach((leaf: any) => {
+            fileExplorers.forEach((leaf: WorkspaceLeaf) => {
             const fileExplorer = (leaf as any).view;
             if (fileExplorer && fileExplorer.fileItems) {
                 // Override the file explorer's file opening behavior
@@ -112,7 +112,7 @@ export class OverrideManager {
         // Also handle when file explorer is opened later
         this.app.workspace.on('layout-change', () => {
             const fileExplorers = this.app.workspace.getLeavesOfType('file-explorer');
-            fileExplorers.forEach((leaf: any) => {
+        fileExplorers.forEach((leaf: WorkspaceLeaf) => {
                 const fileExplorer = (leaf as any).view;
                 if (fileExplorer && !fileExplorer._newTabPatched) {
                     this.patchFileExplorerClicks(fileExplorer);
@@ -228,7 +228,7 @@ export class OverrideManager {
         // Handle graph view opening
         if (this.settings.openGraphInNewTab) {
             const graphLeaves = this.app.workspace.getLeavesOfType('graph');
-            graphLeaves.forEach((leaf: any) => {
+            graphLeaves.forEach((leaf: WorkspaceLeaf) => {
                 if (!leaf.parent || (leaf.parent as any).children.length <= 1) return;
 
                 // Move to new tab if sharing space with other views
@@ -254,7 +254,7 @@ export class OverrideManager {
         // Get search leaves
         const searchLeaves = this.app.workspace.getLeavesOfType('search');
 
-        searchLeaves.forEach((leaf: any) => {
+            searchLeaves.forEach((leaf: WorkspaceLeaf) => {
             const searchView = (leaf as any).view;
             if (searchView && searchView.resultDomLookup && !searchView._newTabPatched) {
                 this.patchSearchResults(searchView);
@@ -264,7 +264,8 @@ export class OverrideManager {
         // Also handle when search is opened later
         this.app.workspace.on('layout-change', () => {
             const searchLeaves = this.app.workspace.getLeavesOfType('search');
-            searchLeaves.forEach((leaf: any) => {
+        searchLeaves.forEach((leaf: WorkspaceLeaf) => {
+				console.log({leaf});
                 const searchView = (leaf as any).view;
                 if (searchView && searchView.resultDomLookup && !searchView._newTabPatched) {
                     this.patchSearchResults(searchView);
@@ -279,10 +280,11 @@ export class OverrideManager {
         searchView._newTabPatched = true;
 
         // Store original method
-        const originalOnFileClick = searchView.onFileClick?.bind(searchView);
+        const originalOnFileClick = searchView.onOpen?.bind(searchView);
 
         // Override the file click handler
-        searchView.onFileClick = async (file: TFile, event: MouseEvent) => {
+        searchView.onOpen = async (file: TFile, event: MouseEvent) => {
+			console.log(file);
             // Check if we should open in new tab
             if (this.fileUtils.shouldOpenFileInNewTab(file, 'search')) {
                 event.preventDefault();
