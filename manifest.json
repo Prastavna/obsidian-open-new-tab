@@ -2,7 +2,7 @@
 	"id": "obsidian-open-new-tab",
 	"name": "Open in New Tab",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.5.3",
 	"description": "Open files in new tab",
 	"author": "prastavna",
 	"authorUrl": "https://prastavna.com",

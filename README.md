@@ -10,7 +10,6 @@ An Obsidian plugin that enhances file opening behavior by allowing files to be o
 - **Graph View**: Open graph view in new tabs
 - **Search Integration**: Open files from search results in new tabs
 - **File Explorer Integration**: Override file explorer clicks to open in new tabs
-- **Command Palette**: Toggle settings via commands
 
 ## Installation
 
@@ -43,12 +42,8 @@ After installation, the plugin works automatically based on your settings. You c
 
 ## Commands
 
-Access these via Command Palette (Ctrl/Cmd + P):
+Access via Command Palette (Ctrl/Cmd + P):
 
-- `Toggle: Open ALL files in new tab`
-- `Toggle: Open canvas in new tab`
-- `Toggle: Open graph in new tab`
-- `Toggle: Open from search in new tab`
 - `Open Graph View in New Tab`
 
 ## Compatibility
