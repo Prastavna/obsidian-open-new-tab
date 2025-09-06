@@ -27,6 +27,11 @@ export class FileUtils {
             return this.settings.openCanvasInNewTab;
         }
 
+        // Check if file has any of the specified tags (tags override source settings)
+        if (this.settings.tagsForNewTab && this.hasMatchingTag(file)) {
+            return true;
+        }
+
         // Check source-specific settings
         switch (currentSource) {
             case 'explorer':
@@ -38,11 +43,6 @@ export class FileUtils {
             case 'quickswitcher':
                 if (!this.settings.openFromQuickSwitcherInNewTab) return false;
                 break;
-        }
-
-        // Check if file has any of the specified tags
-        if (this.settings.tagsForNewTab && this.hasMatchingTag(file)) {
-            return true;
         }
 
         // Check regular files (markdown, etc.)
