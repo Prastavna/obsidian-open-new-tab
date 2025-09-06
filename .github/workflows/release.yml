@@ -27,7 +27,7 @@ jobs:
       - name: Package plugin
         run: |
           tag="${GITHUB_REF#refs/tags/}"
-          zip "${tag}.zip" main.js manifest.json styles.css
+          zip "obsidian-open-new-tab-${tag}.zip" main.js manifest.json styles.css
 
       - name: Create release
         uses: softprops/action-gh-release@v2
