@@ -71,6 +71,17 @@ export class OpenInNewTabSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
+        new Setting(containerEl)
+            .setName('File extensions for new tab')
+            .setDesc('Comma-separated list of file extensions. Files with these extensions will open in new tabs (e.g., png, pdf, jpg)')
+            .addText(text => text
+                .setPlaceholder('png, pdf, jpg, mp4')
+                .setValue(this.plugin.settings.extensionsForNewTab)
+                .onChange(async (value: string) => {
+                    this.plugin.settings.extensionsForNewTab = value;
+                    await this.plugin.saveSettings();
+                }));
+
 
 
         // General section
@@ -92,8 +103,8 @@ export class OpenInNewTabSettingTab extends PluginSettingTab {
         infoEl.innerHTML = `
             <p><strong>Commands:</strong> Use the command palette (Ctrl/Cmd+P) to quickly toggle these settings.</p>
             <p><strong>Open ALL files:</strong> When enabled (default), all files open in new tabs. When disabled, only specific file types and sources open in new tabs based on their settings.</p>
-            <p><strong>Individual Settings:</strong> Canvas, graph, search results, and tagged files can be configured to open in new tabs when "Open ALL files" is disabled.</p>
-            <p><strong>Tags:</strong> Files with specified tags will always open in new tabs (overrides other settings).</p>
+            <p><strong>Individual Settings:</strong> Canvas, graph, search results, tagged files, and specified extensions can be configured to open in new tabs when "Open ALL files" is disabled.</p>
+            <p><strong>Tags & Extensions:</strong> Files with specified tags or extensions will always open in new tabs (overrides other settings).</p>
         `;
     }
 }

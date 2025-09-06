@@ -17,6 +17,7 @@ export interface OpenInNewTabSettings {
     openFromSearchInNewTab: boolean;
     showNotifications: boolean;
     tagsForNewTab: string;
+    extensionsForNewTab: string;
 }
 
 export const DEFAULT_SETTINGS: OpenInNewTabSettings = {
@@ -25,7 +26,8 @@ export const DEFAULT_SETTINGS: OpenInNewTabSettings = {
     openGraphInNewTab: false,
     openFromSearchInNewTab: true,
     showNotifications: false,
-    tagsForNewTab: ''
+    tagsForNewTab: '',
+    extensionsForNewTab: ''
 };
 
 // Custom interfaces for our plugin

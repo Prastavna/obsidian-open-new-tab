@@ -41,6 +41,11 @@ export class FileUtils {
             return true;
         }
 
+        // Check if file extension matches any of the specified extensions
+        if (this.settings.extensionsForNewTab && this.hasMatchingExtension(file)) {
+            return true;
+        }
+
         // Check source-specific settings
         switch (currentSource) {
             case 'search':
@@ -78,5 +83,22 @@ export class FileUtils {
                 fileTag === configTag || fileTag.startsWith(configTag + '/')
             )
         );
+    }
+
+    hasMatchingExtension(file: TFile): boolean {
+        if (!this.settings.extensionsForNewTab) return false;
+
+        // Parse the configured extensions
+        const configuredExtensions = this.settings.extensionsForNewTab
+            .split(',')
+            .map(ext => ext.trim().toLowerCase().replace(/^\./, '')) // Remove leading dots and normalize
+            .filter(ext => ext.length > 0);
+
+        if (configuredExtensions.length === 0) return false;
+
+        const fileExtension = file.extension.toLowerCase();
+
+        // Check if file extension matches any configured extension
+        return configuredExtensions.includes(fileExtension);
     }
 }
