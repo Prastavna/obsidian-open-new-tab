@@ -59,11 +59,6 @@ export class OverrideManager {
     }
 
     overrideSpecialViews() {
-        // Monitor for view changes to handle graph and canvas
-        this.app.workspace.on('layout-change', () => {
-            this.handleSpecialViews();
-        });
-
         // Override workspace methods for special views
         const workspace = this.app.workspace;
 
@@ -224,24 +219,7 @@ export class OverrideManager {
         }, true); // Use capture phase
     }
 
-    private handleSpecialViews() {
-        // Handle graph view opening
-        if (this.settings.openGraphInNewTab) {
-            const graphLeaves = this.app.workspace.getLeavesOfType('graph');
-            graphLeaves.forEach((leaf: WorkspaceLeaf) => {
-                if (!leaf.parent || (leaf.parent as any).children.length <= 1) return;
 
-                // Move to new tab if sharing space with other views
-                const newLeaf = this.app.workspace.getLeaf('tab');
-                newLeaf.setViewState(leaf.view.getState() as any);
-                leaf.detach();
-
-                if (this.settings.showNotifications) {
-                    new Notice('Graph moved to new tab');
-                }
-            });
-        }
-    }
 
     overrideSearchPane() {
         // Wait for search view to be ready
