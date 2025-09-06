@@ -20,16 +20,13 @@ export class OpenInNewTabSettingTab extends PluginSettingTab {
             text: 'Configure which items should open in new tabs by default.'
         });
 
-        // File types section
-        containerEl.createEl('h3', { text: 'File Types' });
-
         new Setting(containerEl)
-            .setName('Open files in new tab')
-            .setDesc('Always open markdown files and other documents in a new tab')
+            .setName('Open ALL files in new tab')
+            .setDesc('When enabled, ALL files will open in new tabs regardless of other settings')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.openFilesInNewTab)
+                .setValue(this.plugin.settings.openAllFilesInNewTab)
                 .onChange(async (value: boolean) => {
-                    this.plugin.settings.openFilesInNewTab = value;
+                    this.plugin.settings.openAllFilesInNewTab = value;
                     await this.plugin.saveSettings();
                 }));
 
@@ -54,6 +51,16 @@ export class OpenInNewTabSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
+            .setName('Open from search pane in new tab')
+            .setDesc('When clicking files in the search results pane, open them in new tabs')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.openFromSearchInNewTab)
+                .onChange(async (value: boolean) => {
+                    this.plugin.settings.openFromSearchInNewTab = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
             .setName('Tags for new tab')
             .setDesc('Comma-separated list of tags. Files with any of these tags will open in new tabs')
             .addText(text => text
@@ -61,29 +68,6 @@ export class OpenInNewTabSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.tagsForNewTab)
                 .onChange(async (value: string) => {
                     this.plugin.settings.tagsForNewTab = value;
-                    await this.plugin.saveSettings();
-                }));
-
-        // Source section
-        containerEl.createEl('h3', { text: 'Opening Sources' });
-
-        new Setting(containerEl)
-            .setName('Open from file explorer in new tab')
-            .setDesc('When clicking files in the file explorer sidebar, open them in new tabs')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.openFromExplorerInNewTab)
-                .onChange(async (value: boolean) => {
-                    this.plugin.settings.openFromExplorerInNewTab = value;
-                    await this.plugin.saveSettings();
-                }));
-
-        new Setting(containerEl)
-            .setName('Open from search pane in new tab')
-            .setDesc('When clicking files in the search results pane, open them in new tabs')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.openFromSearchInNewTab)
-                .onChange(async (value: boolean) => {
-                    this.plugin.settings.openFromSearchInNewTab = value;
                     await this.plugin.saveSettings();
                 }));
 

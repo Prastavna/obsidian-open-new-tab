@@ -11,20 +11,18 @@ export type ObsidianModal = Modal;
 
 // Settings interface (defined here to avoid circular imports)
 export interface OpenInNewTabSettings {
-    openFilesInNewTab: boolean;
+    openAllFilesInNewTab: boolean;
     openCanvasInNewTab: boolean;
     openGraphInNewTab: boolean;
-    openFromExplorerInNewTab: boolean;
     openFromSearchInNewTab: boolean;
     showNotifications: boolean;
     tagsForNewTab: string;
 }
 
 export const DEFAULT_SETTINGS: OpenInNewTabSettings = {
-    openFilesInNewTab: true,
+    openAllFilesInNewTab: false,
     openCanvasInNewTab: true,
     openGraphInNewTab: true,
-    openFromExplorerInNewTab: true,
     openFromSearchInNewTab: true,
     showNotifications: false,
     tagsForNewTab: ''

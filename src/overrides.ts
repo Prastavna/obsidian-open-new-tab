@@ -18,6 +18,10 @@ export class OverrideManager {
         this.fileUtils = fileUtils;
     }
 
+    updateSettings(settings: OpenInNewTabSettings) {
+        this.settings = settings;
+    }
+
     overrideOpenLinkText() {
         const workspace = this.app.workspace;
 
@@ -128,7 +132,7 @@ export class OverrideManager {
         // Create our custom click handler
         const customClickHandler = async (file: TFile, event: MouseEvent) => {
             // Check if we should open in new tab
-            if (this.fileUtils.shouldOpenFileInNewTab(file, 'explorer')) {
+            if (this.fileUtils.shouldOpenFileInNewTab(file)) {
                 event.preventDefault();
                 event.stopPropagation();
 
@@ -204,7 +208,7 @@ export class OverrideManager {
             if (!(file instanceof TFile)) return;
 
             // Check if we should intercept this click
-            if (this.fileUtils.shouldOpenFileInNewTab(file, 'explorer')) {
+            if (this.fileUtils.shouldOpenFileInNewTab(file)) {
                 event.preventDefault();
                 event.stopPropagation();
 

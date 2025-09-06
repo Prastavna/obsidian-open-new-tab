@@ -10,6 +10,10 @@ export class FileUtils {
         this.settings = settings;
     }
 
+    updateSettings(settings: OpenInNewTabSettings) {
+        this.settings = settings;
+    }
+
     shouldOpenInNewTab(linktext: string, sourcePath: string): boolean {
         // Get the target file
         const file = this.app.metadataCache.getFirstLinkpathDest(linktext, sourcePath);
@@ -19,6 +23,11 @@ export class FileUtils {
     }
 
     shouldOpenFileInNewTab(file: TFile, source?: 'explorer' | 'search' | 'quickswitcher' | 'other'): boolean {
+        // If open all files in new tab is enabled, return true for all files
+        if (this.settings.openAllFilesInNewTab) {
+            return true;
+        }
+
         const extension = file.extension.toLowerCase();
         const currentSource = source || 'other';
 
@@ -34,22 +43,13 @@ export class FileUtils {
 
         // Check source-specific settings
         switch (currentSource) {
-            case 'explorer':
-                if (!this.settings.openFromExplorerInNewTab) return false;
-                break;
             case 'search':
                 if (!this.settings.openFromSearchInNewTab) return false;
                 break;
-
         }
 
-        // Check regular files (markdown, etc.)
-        if (extension === 'md' || extension === 'txt' || !extension) {
-            return this.settings.openFilesInNewTab;
-        }
-
-        // Default to files setting for other file types
-        return this.settings.openFilesInNewTab;
+        // For all other cases, return true (files should open in new tab by default)
+        return true;
     }
 
     hasMatchingTag(file: TFile): boolean {

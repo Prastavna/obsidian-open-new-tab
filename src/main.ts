@@ -52,18 +52,23 @@ export default class OpenInNewTabPlugin extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
+        // Update settings in utilities and managers
+        this.fileUtils.updateSettings(this.settings);
+        this.overrideManager.updateSettings(this.settings);
     }
 
     private addCommands() {
         this.addCommand({
-            id: 'toggle-files-new-tab',
-            name: 'Toggle: Open files in new tab',
+            id: 'toggle-all-files-new-tab',
+            name: 'Toggle: Open ALL files in new tab',
             callback: () => {
-                this.settings.openFilesInNewTab = !this.settings.openFilesInNewTab;
+                this.settings.openAllFilesInNewTab = !this.settings.openAllFilesInNewTab;
                 this.saveSettings();
-                new Notice(`Files in new tab: ${this.settings.openFilesInNewTab ? 'ON' : 'OFF'}`);
+                new Notice(`ALL files in new tab: ${this.settings.openAllFilesInNewTab ? 'ON' : 'OFF'}`);
             }
         });
+
+
 
         this.addCommand({
             id: 'toggle-canvas-new-tab',
@@ -85,15 +90,7 @@ export default class OpenInNewTabPlugin extends Plugin {
             }
         });
 
-        this.addCommand({
-            id: 'toggle-explorer-new-tab',
-            name: 'Toggle: Open from explorer in new tab',
-            callback: () => {
-                this.settings.openFromExplorerInNewTab = !this.settings.openFromExplorerInNewTab;
-                this.saveSettings();
-                new Notice(`Explorer in new tab: ${this.settings.openFromExplorerInNewTab ? 'ON' : 'OFF'}`);
-            }
-        });
+
 
         this.addCommand({
             id: 'toggle-search-new-tab',
