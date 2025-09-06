@@ -20,9 +20,9 @@ export interface OpenInNewTabSettings {
 }
 
 export const DEFAULT_SETTINGS: OpenInNewTabSettings = {
-    openAllFilesInNewTab: false,
-    openCanvasInNewTab: true,
-    openGraphInNewTab: true,
+    openAllFilesInNewTab: true,
+    openCanvasInNewTab: false,
+    openGraphInNewTab: false,
     openFromSearchInNewTab: true,
     showNotifications: false,
     tagsForNewTab: ''

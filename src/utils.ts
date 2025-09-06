@@ -44,12 +44,11 @@ export class FileUtils {
         // Check source-specific settings
         switch (currentSource) {
             case 'search':
-                if (!this.settings.openFromSearchInNewTab) return false;
-                break;
+                return this.settings.openFromSearchInNewTab;
         }
 
-        // For all other cases, return true (files should open in new tab by default)
-        return true;
+        // For all other cases, return false (don't open in new tab by default)
+        return false;
     }
 
     hasMatchingTag(file: TFile): boolean {

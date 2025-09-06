@@ -22,7 +22,7 @@ export class OpenInNewTabSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Open ALL files in new tab')
-            .setDesc('When enabled, ALL files will open in new tabs regardless of other settings')
+            .setDesc('When enabled (default), ALL files open in new tabs. When disabled, only canvas, graph, search results, and tagged files open in new tabs based on their individual settings')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.openAllFilesInNewTab)
                 .onChange(async (value: boolean) => {
@@ -91,9 +91,9 @@ export class OpenInNewTabSettingTab extends PluginSettingTab {
         const infoEl = containerEl.createEl('div');
         infoEl.innerHTML = `
             <p><strong>Commands:</strong> Use the command palette (Ctrl/Cmd+P) to quickly toggle these settings.</p>
-            <p><strong>File Types:</strong> Controls which file types open in new tabs when accessed via any source.</p>
-            <p><strong>Sources:</strong> Controls which sources (file explorer, quick switcher, search) should open files in new tabs.</p>
-            <p><strong>Behavior:</strong> A file will open in a new tab only if both its file type setting AND source setting are enabled.</p>
+            <p><strong>Open ALL files:</strong> When enabled (default), all files open in new tabs. When disabled, only specific file types and sources open in new tabs based on their settings.</p>
+            <p><strong>Individual Settings:</strong> Canvas, graph, search results, and tagged files can be configured to open in new tabs when "Open ALL files" is disabled.</p>
+            <p><strong>Tags:</strong> Files with specified tags will always open in new tabs (overrides other settings).</p>
         `;
     }
 }
