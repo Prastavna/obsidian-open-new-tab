@@ -3,7 +3,7 @@ name: Release Obsidian plugin
 on:
   push:
     tags:
-      - "*"
+      - "v*"
 
 jobs:
   build:
@@ -23,13 +23,16 @@ jobs:
           npm install
           npm run build
 
-      - name: Create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package plugin
         run: |
           tag="${GITHUB_REF#refs/tags/}"
+          zip "${tag}.zip" main.js manifest.json styles.css
 
-          gh release create "$tag" \
-            --title="$tag" \
-            --draft \
-            main.js manifest.json styles.css
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          files: |
+            *.zip
+
