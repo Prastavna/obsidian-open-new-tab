@@ -1,19 +1,17 @@
-import { TFile, Notice, Plugin, WorkspaceLeaf } from 'obsidian';
+import { TFile, Notice, WorkspaceLeaf } from 'obsidian';
 import { FileUtils } from './utils';
-import { OpenInNewTabSettings, ExtendedApp, FileExplorerView, SearchView } from './types';
+import { OpenInNewTabSettings, ExtendedApp } from './types';
 
 export class OverrideManager {
     private app: ExtendedApp;
-    private plugin: Plugin & { settings: OpenInNewTabSettings; saveSettings: () => Promise<void> };
     private settings: OpenInNewTabSettings;
     private fileUtils: FileUtils;
     private originalOpenFile: any;
     private originalOpenLinkText: any;
     private fileExplorerHandler: any;
 
-    constructor(app: ExtendedApp, plugin: Plugin & { settings: OpenInNewTabSettings; saveSettings: () => Promise<void> }, settings: OpenInNewTabSettings, fileUtils: FileUtils) {
+    constructor(app: ExtendedApp, plugin: any, settings: OpenInNewTabSettings, fileUtils: FileUtils) {
         this.app = app;
-        this.plugin = plugin;
         this.settings = settings;
         this.fileUtils = fileUtils;
     }
@@ -51,12 +49,29 @@ export class OverrideManager {
         // Override openFile method
         (workspace as any).openFile = async (file: TFile, openViewState?: any) => {
             if (this.fileUtils.shouldOpenFileInNewTab(file)) {
-                // Force opening in new leaf
-                const newLeaf = workspace.getLeaf('tab');
-                if (this.settings.showNotifications) {
-                    new Notice(`Opening ${file.name} in new tab`);
+                // Use smart tab management
+                const emptyLeaf = this.fileUtils.findEmptyLeaf();
+                const existingLeaf = this.fileUtils.findExistingLeaf(file);
+
+                if (emptyLeaf) {
+                    this.app.workspace.revealLeaf(emptyLeaf);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Opening ${file.name} in new tab`);
+                    }
+                    return emptyLeaf.openFile(file, openViewState);
+                } else if (existingLeaf) {
+                    this.app.workspace.revealLeaf(existingLeaf);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Switched to existing tab for ${file.name}`);
+                    }
+                    return Promise.resolve();
+                } else {
+                    const newLeaf = workspace.getLeaf('tab');
+                    if (this.settings.showNotifications) {
+                        new Notice(`Opening ${file.name} in new tab`);
+                    }
+                    return newLeaf.openFile(file, openViewState);
                 }
-                return newLeaf.openFile(file, openViewState);
             }
             return this.originalOpenFile(file, openViewState);
         };
@@ -110,12 +125,27 @@ export class OverrideManager {
                 event.preventDefault();
                 event.stopPropagation();
 
-                // Open in new tab
-                const newLeaf = this.app.workspace.getLeaf('tab');
-                await newLeaf.openFile(file);
+                // Use smart tab management
+                const emptyLeaf = this.fileUtils.findEmptyLeaf();
+                const existingLeaf = this.fileUtils.findExistingLeaf(file);
 
-                if (this.settings.showNotifications) {
-                    new Notice(`Opening ${file.name} from explorer in new tab`);
+                if (emptyLeaf) {
+                    this.app.workspace.revealLeaf(emptyLeaf);
+                    await emptyLeaf.openFile(file);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Opening ${file.name} in new tab`);
+                    }
+                } else if (existingLeaf) {
+                    this.app.workspace.revealLeaf(existingLeaf);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Switched to existing tab for ${file.name}`);
+                    }
+                } else {
+                    const newLeaf = this.app.workspace.getLeaf('tab');
+                    await newLeaf.openFile(file);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Opening ${file.name} from explorer in new tab`);
+                    }
                 }
                 return;
             }
@@ -186,12 +216,27 @@ export class OverrideManager {
                 event.preventDefault();
                 event.stopPropagation();
 
-                // Open in new tab
-                const newLeaf = this.app.workspace.getLeaf('tab');
-                await newLeaf.openFile(file);
+                // Use smart tab management
+                const emptyLeaf = this.fileUtils.findEmptyLeaf();
+                const existingLeaf = this.fileUtils.findExistingLeaf(file);
 
-                if (this.settings.showNotifications) {
-                    new Notice(`Opening ${file.name} from explorer in new tab`);
+                if (emptyLeaf) {
+                    this.app.workspace.revealLeaf(emptyLeaf);
+                    await emptyLeaf.openFile(file);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Opening ${file.name} in new tab`);
+                    }
+                } else if (existingLeaf) {
+                    this.app.workspace.revealLeaf(existingLeaf);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Switched to existing tab for ${file.name}`);
+                    }
+                } else {
+                    const newLeaf = this.app.workspace.getLeaf('tab');
+                    await newLeaf.openFile(file);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Opening ${file.name} from explorer in new tab`);
+                    }
                 }
             }
         }, true); // Use capture phase
@@ -219,7 +264,7 @@ export class OverrideManager {
 
         // Also handle when search is opened later
         this.app.workspace.on('layout-change', () => {
-            const searchLeaves = this.app.workspace.getLeavesOfType('search');
+		const searchLeaves = this.app.workspace.getLeavesOfType('search');
         searchLeaves.forEach((leaf: WorkspaceLeaf) => {
 				console.log({leaf});
                 const searchView = (leaf as any).view;
@@ -246,12 +291,27 @@ export class OverrideManager {
                 event.preventDefault();
                 event.stopPropagation();
 
-                // Open in new tab
-                const newLeaf = this.app.workspace.getLeaf('tab');
-                await newLeaf.openFile(file);
+                // Use smart tab management
+                const emptyLeaf = this.fileUtils.findEmptyLeaf();
+                const existingLeaf = this.fileUtils.findExistingLeaf(file);
 
-                if (this.settings.showNotifications) {
-                    new Notice(`Opening ${file.name} from search in new tab`);
+                if (emptyLeaf) {
+                    this.app.workspace.revealLeaf(emptyLeaf);
+                    await emptyLeaf.openFile(file);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Opening ${file.name} in new tab`);
+                    }
+                } else if (existingLeaf) {
+                    this.app.workspace.revealLeaf(existingLeaf);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Switched to existing tab for ${file.name}`);
+                    }
+                } else {
+                    const newLeaf = this.app.workspace.getLeaf('tab');
+                    await newLeaf.openFile(file);
+                    if (this.settings.showNotifications) {
+                        new Notice(`Opening ${file.name} from search in new tab`);
+                    }
                 }
                 return;
             }
@@ -274,9 +334,28 @@ export class OverrideManager {
                 async openFile(file: TFile, newLeaf?: boolean) {
                     // Check if we should open in new tab
                     if (!newLeaf && manager.fileUtils.shouldOpenFileInNewTab(file, 'quickswitcher')) {
-                        newLeaf = true;
-                        if (manager.settings.showNotifications) {
-                            new Notice(`Opening ${file.name} from quick switcher in new tab`);
+                        // Use smart tab management
+                        const emptyLeaf = manager.fileUtils.findEmptyLeaf();
+                        const existingLeaf = manager.fileUtils.findExistingLeaf(file);
+
+                        if (emptyLeaf) {
+                            manager.app.workspace.revealLeaf(emptyLeaf);
+                            await emptyLeaf.openFile(file);
+                            if (manager.settings.showNotifications) {
+                                new Notice(`Opening ${file.name} in new tab`);
+                            }
+                            return;
+                        } else if (existingLeaf) {
+                            manager.app.workspace.revealLeaf(existingLeaf);
+                            if (manager.settings.showNotifications) {
+                                new Notice(`Switched to existing tab for ${file.name}`);
+                            }
+                            return;
+                        } else {
+                            newLeaf = true;
+                            if (manager.settings.showNotifications) {
+                                new Notice(`Opening ${file.name} from quick switcher in new tab`);
+                            }
                         }
                     }
 

@@ -26,6 +26,7 @@ export default class OpenInNewTabPlugin extends Plugin {
         this.overrideManager.overrideFileOpening();
         this.overrideManager.overrideFileExplorer();
         this.overrideManager.overrideSearchPane();
+        this.overrideManager.overrideQuickSwitcher();
 
         // Add commands
         this.addCommands();

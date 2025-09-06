@@ -101,4 +101,43 @@ export class FileUtils {
         // Check if file extension matches any configured extension
         return configuredExtensions.includes(fileExtension);
     }
+
+    findExistingLeaf(file: TFile): any {
+        // Find existing leaf with this file
+        const leaves = this.app.workspace.getLeavesOfType('markdown');
+        return leaves.find(leaf => (leaf.view as any)?.file?.path === file.path);
+    }
+
+    findEmptyLeaf(): any {
+        // Find empty leaf (new tab + icon)
+        const emptyLeaves = this.app.workspace.getLeavesOfType('empty');
+        return emptyLeaves[0];
+    }
+
+    revealOrOpenFile(file: TFile, openViewState?: any, forceNewTab?: boolean): Promise<void> {
+        // If forcing new tab (like explicit commands), always open new
+        if (forceNewTab) {
+            const newLeaf = this.app.workspace.getLeaf('tab');
+            return newLeaf.openFile(file, openViewState);
+        }
+
+        // Check for empty leaf first (respects new tab intent from + icon)
+        const emptyLeaf = this.findEmptyLeaf();
+        if (emptyLeaf) {
+            this.app.workspace.revealLeaf(emptyLeaf);
+            return emptyLeaf.openFile(file, openViewState);
+        }
+
+        // Then check if file is already open
+        const existingLeaf = this.findExistingLeaf(file);
+        if (existingLeaf) {
+            // File is already open, reveal the existing leaf
+            this.app.workspace.revealLeaf(existingLeaf);
+            return Promise.resolve();
+        } else {
+            // File not open, open in new tab
+            const newLeaf = this.app.workspace.getLeaf('tab');
+            return newLeaf.openFile(file, openViewState);
+        }
+    }
 }

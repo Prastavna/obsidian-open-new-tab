@@ -1,10 +1,11 @@
 # Open in New Tab
 
-An Obsidian plugin that enhances file opening behavior by allowing files to be opened in new tabs instead of replacing the current view.
+An Obsidian plugin that enhances file opening behavior by intelligently managing tabs - switching to existing tabs when files are already open, or opening in new tabs based on your settings.
 
 ## Features
 
-- **Open All Files in New Tab**: Automatically open all files in new tabs
+- **Smart Tab Management**: Switches to existing tabs instead of opening duplicates
+- **Open All Files in New Tab**: Automatically open all files in new tabs (when not already open)
 - **Selective Opening**: Configure specific file types, tags, or extensions to open in new tabs
 - **Canvas Support**: Open canvas files in new tabs
 - **Graph View**: Open graph view in new tabs
