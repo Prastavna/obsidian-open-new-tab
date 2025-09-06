@@ -1,7 +1,7 @@
 {
 	"name": "obsidian-open-new-tab",
 	"version": "1.0.0",
-	"description": "A plugin to open a link in a new tab in Obsidian",
+	"description": "Open files in new tab",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",

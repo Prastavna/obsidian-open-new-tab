@@ -62,32 +62,6 @@ export class OverrideManager {
         };
     }
 
-    overrideSpecialViews() {
-        // Override workspace methods for special views
-        const workspace = this.app.workspace;
-
-        // Intercept when graph view is about to be opened
-        this.plugin.addCommand({
-            id: 'graph',
-            name: 'Open graph view',
-            checkCallback: (checking: boolean) => {
-                if (checking) return true;
-
-                if (this.settings.openGraphInNewTab) {
-                    const leaf = workspace.getLeaf('tab');
-                    leaf.setViewState({ type: 'graph' });
-                    if (this.settings.showNotifications) {
-                        new Notice('Graph view opened in new tab');
-                    }
-                } else {
-                    const leaf = workspace.getLeaf();
-                    leaf.setViewState({ type: 'graph' });
-                }
-                return false;
-            }
-        });
-    }
-
     overrideFileExplorer() {
         // Wait for file explorer to be ready
         this.app.workspace.onLayoutReady(() => {

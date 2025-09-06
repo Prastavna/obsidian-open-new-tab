@@ -3,9 +3,9 @@
 	"name": "Open in New Tab",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "A plugin to open a link in a new tab in Obsidian",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Open files in new tab",
+	"author": "prastavna",
+	"authorUrl": "https://prastavna.com",
+	"helpUrl": "https://github.com/Prastavna/obsidian-open-new-tab/issues",
 	"isDesktopOnly": false
 }
