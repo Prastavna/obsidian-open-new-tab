@@ -10,8 +10,6 @@ export default class OpenInNewTabPlugin extends Plugin {
     private overrideManager: OverrideManager;
 
     async onload() {
-        console.log('Loading Open in New Tab plugin');
-
         await this.loadSettings();
 
         // Initialize utilities and managers
@@ -33,7 +31,6 @@ export default class OpenInNewTabPlugin extends Plugin {
     }
 
     onunload() {
-        console.log('Unloading Open in New Tab plugin');
         this.overrideManager.restoreOriginalMethods();
         this.overrideManager.cleanup();
     }
