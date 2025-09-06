@@ -41,7 +41,7 @@ export interface FileExplorerView {
     _newTabPatched?: boolean;
 }
 
-export interface SearchView {
+export interface SearchView extends View {
     resultDomLookup?: Record<string, any>; // Search result DOM lookup
     onFileClick?: (file: TFile, event: MouseEvent) => void;
     _newTabPatched?: boolean;
