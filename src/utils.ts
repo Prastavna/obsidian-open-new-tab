@@ -40,9 +40,7 @@ export class FileUtils {
             case 'search':
                 if (!this.settings.openFromSearchInNewTab) return false;
                 break;
-            case 'quickswitcher':
-                if (!this.settings.openFromQuickSwitcherInNewTab) return false;
-                break;
+
         }
 
         // Check regular files (markdown, etc.)

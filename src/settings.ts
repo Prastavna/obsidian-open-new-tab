@@ -87,15 +87,7 @@ export class OpenInNewTabSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
-        new Setting(containerEl)
-            .setName('Open from quick switcher in new tab')
-            .setDesc('When selecting files in the quick switcher, open them in new tabs')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.openFromQuickSwitcherInNewTab)
-                .onChange(async (value: boolean) => {
-                    this.plugin.settings.openFromQuickSwitcherInNewTab = value;
-                    await this.plugin.saveSettings();
-                }));
+
 
         // General section
         containerEl.createEl('h3', { text: 'General' });

@@ -1,4 +1,4 @@
-import { TFile, Notice, Plugin, WorkspaceLeaf, View } from 'obsidian';
+import { TFile, Notice, Plugin, WorkspaceLeaf } from 'obsidian';
 import { FileUtils } from './utils';
 import { OpenInNewTabSettings, ExtendedApp, FileExplorerView, SearchView } from './types';
 
@@ -253,9 +253,10 @@ export class OverrideManager {
     private setupSearchPaneHandler() {
         // Get search leaves
         const searchLeaves = this.app.workspace.getLeavesOfType('search');
-        searchLeaves.forEach((leaf: WorkspaceLeaf) => {
+
+            searchLeaves.forEach((leaf: WorkspaceLeaf) => {
             const searchView = (leaf as any).view;
-            if (searchView && searchView.containerEl && !searchView._newTabPatched) {
+            if (searchView && searchView.resultDomLookup && !searchView._newTabPatched) {
                 this.patchSearchResults(searchView);
             }
         });
@@ -263,9 +264,10 @@ export class OverrideManager {
         // Also handle when search is opened later
         this.app.workspace.on('layout-change', () => {
             const searchLeaves = this.app.workspace.getLeavesOfType('search');
-            searchLeaves.forEach((leaf: WorkspaceLeaf) => {
+        searchLeaves.forEach((leaf: WorkspaceLeaf) => {
+				console.log({leaf});
                 const searchView = (leaf as any).view;
-                if (searchView && searchView.containerEl && !searchView._newTabPatched) {
+                if (searchView && searchView.resultDomLookup && !searchView._newTabPatched) {
                     this.patchSearchResults(searchView);
                 }
             });
@@ -277,145 +279,15 @@ export class OverrideManager {
 
         searchView._newTabPatched = true;
 
-        // Try to override the search view's file opening method first
-        this.overrideSearchViewMethods(searchView);
+        // Store original method
+        const originalOnFileClick = searchView.onOpen?.bind(searchView);
 
-        // For search views, we need to use DOM event listeners
-        // since method patching doesn't work reliably
-        this.patchSearchDomEvents(searchView);
-    }
-
-    private overrideSearchViewMethods(searchView: any) {
-        // Try to find and override the search view's file opening methods
-        if (searchView.onFileClick) {
-            const originalOnFileClick = searchView.onFileClick.bind(searchView);
-            searchView.onFileClick = async (file: TFile, event: MouseEvent) => {
-                if (this.fileUtils.shouldOpenFileInNewTab(file, 'search')) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    event.stopPropagation();
-
-                    console.log('Opening file from search view method:', file.path);
-                    const newLeaf = this.app.workspace.getLeaf('tab');
-                    await newLeaf.openFile(file);
-
-                    if (this.settings.showNotifications) {
-                        new Notice(`Opening ${file.name} from search in new tab`);
-                    }
-                    return false;
-                }
-                return originalOnFileClick(file, event);
-            };
-        }
-
-        // Also try other common method names
-        const methodNames = ['handleFileClick', 'openFile', 'onResultClick'];
-        methodNames.forEach(methodName => {
-            if (searchView[methodName]) {
-                const originalMethod = searchView[methodName].bind(searchView);
-                searchView[methodName] = async (...args: any[]) => {
-                    const file = args.find(arg => arg instanceof TFile);
-                    const event = args.find(arg => arg instanceof MouseEvent);
-
-                    if (file && this.fileUtils.shouldOpenFileInNewTab(file, 'search')) {
-                        if (event) {
-                            event.preventDefault();
-                            event.stopImmediatePropagation();
-                            event.stopPropagation();
-                        }
-
-                        console.log(`Opening file from search view ${methodName}:`, file.path);
-                        const newLeaf = this.app.workspace.getLeaf('tab');
-                        await newLeaf.openFile(file);
-
-                        if (this.settings.showNotifications) {
-                            new Notice(`Opening ${file.name} from search in new tab`);
-                        }
-                        return;
-                    }
-                    return originalMethod(...args);
-                };
-            }
-        });
-    }
-
-    private patchSearchDomEvents(searchView: any) {
-        // Wait for the search results to be rendered
-        const searchContainer = searchView.containerEl;
-
-        if (!searchContainer) return;
-
-        // Use event delegation on the search container with capture phase
-        // Also try to patch individual elements
-        this.patchIndividualSearchResults(searchView);
-
-        // Debug: Log existing event listeners and search view methods
-        console.log('Search container event listeners:', searchContainer);
-        console.log('Search view methods:', Object.getOwnPropertyNames(searchView).filter(name => typeof searchView[name] === 'function'));
-
-        searchContainer.addEventListener('click', async (event: Event) => {
-            const target = event.target as HTMLElement;
-
-            // Find the closest clickable search result element
-            const searchResult = target.closest('.search-result, .search-result-file, .tree-item, [data-path]');
-
-            if (!searchResult) return;
-
-            console.log('Search result clicked:', searchResult, 'Target:', target, 'Text:', searchResult.textContent);
-
-            // Try to find the file from the element
-            let filePath = (searchResult as HTMLElement).getAttribute('data-path');
-
-            if (!filePath) {
-                // Try to find it in child elements
-                const pathElement = searchResult.querySelector('[data-path]');
-                filePath = pathElement?.getAttribute('data-path') || '';
-            }
-
-            // If still no path, try various other methods
-            if (!filePath) {
-                // Try to get from aria-label or other attributes
-                filePath = (searchResult as HTMLElement).getAttribute('aria-label') ||
-                          (searchResult as HTMLElement).getAttribute('title') || '';
-
-            // If still no path, try to extract from text content
-            if (!filePath) {
-                // First try to get text from tree-item-inner specifically
-                const treeItemInner = searchResult.querySelector('.tree-item-inner');
-                let textContent = treeItemInner?.textContent?.trim();
-
-                // Fallback to general text content
-                if (!textContent) {
-                    textContent = searchResult.textContent?.trim();
-                }
-
-                if (textContent) {
-                    // Remove any extra content like match counts
-                    const cleanText = textContent.replace(/\s*\d+\s*$/, '').trim();
-
-                    // Try to find a file with this name
-                    const files = this.app.vault.getFiles();
-                    const matchingFile = files.find(file =>
-                        file.name === cleanText ||
-                        file.basename === cleanText
-                    );
-                    if (matchingFile) {
-                        filePath = matchingFile.path;
-                    }
-                }
-            }
-            }
-
-            if (!filePath) return;
-
-            const file = this.app.vault.getAbstractFileByPath(filePath);
-            if (!(file instanceof TFile)) return;
-
+        // Override the file click handler
+        searchView.onOpen = async (file: TFile, event: MouseEvent) => {
+			console.log(file);
             // Check if we should open in new tab
             if (this.fileUtils.shouldOpenFileInNewTab(file, 'search')) {
-                console.log('Opening file in new tab from search:', file.path);
                 event.preventDefault();
-                event.stopImmediatePropagation();
                 event.stopPropagation();
 
                 // Open in new tab
@@ -425,106 +297,12 @@ export class OverrideManager {
                 if (this.settings.showNotifications) {
                     new Notice(`Opening ${file.name} from search in new tab`);
                 }
-
-                return false; // Additional prevention
-            } else {
-                console.log('File should open normally:', file.path);
-            }
-        }, true); // Use capture phase
-    }
-
-    private patchIndividualSearchResults(searchView: any) {
-        // Use MutationObserver to watch for new search results
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === Node.ELEMENT_NODE) {
-                        const element = node as Element;
-                        // Look for search result elements
-                        const searchResults = element.querySelectorAll('.tree-item.search-result, .search-result-file-title');
-                        searchResults.forEach(result => this.patchSearchResultElement(result as HTMLElement));
-
-                        // Also check if this node itself is a search result
-                        if (element.classList.contains('tree-item') && element.classList.contains('search-result')) {
-                            this.patchSearchResultElement(element as HTMLElement);
-                        }
-                        if (element.classList.contains('search-result-file-title')) {
-                            this.patchSearchResultElement(element as HTMLElement);
-                        }
-                    }
-                });
-            });
-        });
-
-        // Start observing
-        if (searchView.containerEl) {
-            observer.observe(searchView.containerEl, {
-                childList: true,
-                subtree: true
-            });
-        }
-
-        // Patch existing results
-        const existingResults = searchView.containerEl?.querySelectorAll('.tree-item.search-result, .search-result-file-title') || [];
-        existingResults.forEach((result: Element) => this.patchSearchResultElement(result as HTMLElement));
-    }
-
-    private patchSearchResultElement(element: HTMLElement) {
-        if (element.dataset.searchPatched) return;
-        element.dataset.searchPatched = 'true';
-
-        // Store original click handler if it exists
-        const originalClick = element.onclick;
-
-        // Override the click handler
-        element.onclick = async (event: Event) => {
-            console.log('Search result element clicked directly:', element);
-
-            // Extract file path (similar logic as before)
-            let filePath = element.getAttribute('data-path');
-
-            if (!filePath) {
-                const treeItemInner = element.querySelector('.tree-item-inner');
-                let textContent = treeItemInner?.textContent?.trim();
-
-                if (!textContent) {
-                    textContent = element.textContent?.trim();
-                }
-
-                if (textContent) {
-                    const cleanText = textContent.replace(/\s*\d+\s*$/, '').trim();
-                    const files = this.app.vault.getFiles();
-                    const matchingFile = files.find(file =>
-                        file.name === cleanText ||
-                        file.basename === cleanText
-                    );
-                    if (matchingFile) {
-                        filePath = matchingFile.path;
-                    }
-                }
+                return;
             }
 
-            if (filePath) {
-                const file = this.app.vault.getAbstractFileByPath(filePath);
-                if (file instanceof TFile && this.fileUtils.shouldOpenFileInNewTab(file, 'search')) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    event.stopPropagation();
-
-                    console.log('Opening file in new tab from direct click:', file.path);
-                    const newLeaf = this.app.workspace.getLeaf('tab');
-                    await newLeaf.openFile(file);
-
-                    if (this.settings.showNotifications) {
-                        new Notice(`Opening ${file.name} from search in new tab`);
-                    }
-                    return false;
-                }
-            }
-
-            // Call original handler if it exists
-            if (originalClick) {
-                return originalClick.call(element, event);
+            // Otherwise use original behavior
+            if (originalOnFileClick) {
+                return originalOnFileClick(file, event);
             }
         };
     }

@@ -16,7 +16,6 @@ export interface OpenInNewTabSettings {
     openGraphInNewTab: boolean;
     openFromExplorerInNewTab: boolean;
     openFromSearchInNewTab: boolean;
-    openFromQuickSwitcherInNewTab: boolean;
     showNotifications: boolean;
     tagsForNewTab: string;
 }
@@ -27,7 +26,6 @@ export const DEFAULT_SETTINGS: OpenInNewTabSettings = {
     openGraphInNewTab: true,
     openFromExplorerInNewTab: true,
     openFromSearchInNewTab: true,
-    openFromQuickSwitcherInNewTab: true,
     showNotifications: false,
     tagsForNewTab: ''
 };
@@ -47,16 +45,12 @@ export interface SearchView extends View {
     _newTabPatched?: boolean;
 }
 
-export interface QuickSwitcherModal {
-    openFile(file: TFile, newLeaf?: boolean): Promise<void>;
-}
+
 
 export interface InternalPlugins {
     plugins: {
         switcher?: {
-            instance?: {
-                QuickSwitcherModal?: new () => QuickSwitcherModal;
-            };
+            instance?: any;
         };
     };
 }

@@ -27,7 +27,6 @@ export default class OpenInNewTabPlugin extends Plugin {
         this.overrideManager.overrideSpecialViews();
         this.overrideManager.overrideFileExplorer();
         this.overrideManager.overrideSearchPane();
-        this.overrideManager.overrideQuickSwitcher();
 
         // Add ribbon icon
         this.addRibbonIcon('external-link', 'Open in New Tab Settings', () => {
@@ -106,15 +105,7 @@ export default class OpenInNewTabPlugin extends Plugin {
             }
         });
 
-        this.addCommand({
-            id: 'toggle-quickswitcher-new-tab',
-            name: 'Toggle: Open from quick switcher in new tab',
-            callback: () => {
-                this.settings.openFromQuickSwitcherInNewTab = !this.settings.openFromQuickSwitcherInNewTab;
-                this.saveSettings();
-                new Notice(`Quick switcher in new tab: ${this.settings.openFromQuickSwitcherInNewTab ? 'ON' : 'OFF'}`);
-            }
-        });
+
 
         this.addCommand({
             id: 'open-graph-view-new-tab',
