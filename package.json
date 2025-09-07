@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-open-new-tab",
+	"name": "open-new-tab",
 	"version": "1.0.0",
 	"description": "Open files in new tab",
 	"main": "main.js",
