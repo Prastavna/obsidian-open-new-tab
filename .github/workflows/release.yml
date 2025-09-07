@@ -23,15 +23,14 @@ jobs:
           npm install
           npm run build
 
-
-      - name: Package plugin
-        run: |
-          tag="${GITHUB_REF#refs/tags/}"
-          zip "obsidian-open-new-tab-${tag}.zip" main.js manifest.json styles.css
-
       - name: Create release
         uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
           files: |
-            *.zip
-
+            main.js
+            manifest.json
