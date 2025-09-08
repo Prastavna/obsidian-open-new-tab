@@ -14,7 +14,7 @@ export default class OpenInNewTabPlugin extends Plugin {
 
         // Initialize utilities and managers
         this.fileUtils = new FileUtils(this.app, this.settings);
-        this.overrideManager = new OverrideManager(this.app, this, this.settings, this.fileUtils);
+        this.overrideManager = new OverrideManager(this.app, this.settings, this.fileUtils);
 
         // Add settings tab
         this.addSettingTab(new OpenInNewTabSettingTab(this.app, this));

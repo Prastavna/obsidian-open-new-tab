@@ -1,4 +1,4 @@
-import { TFile } from 'obsidian';
+import { TFile, WorkspaceLeaf, TextFileView, OpenViewState } from 'obsidian';
 import { OpenInNewTabSettings, ExtendedApp, TagInfo } from './types';
 
 export class FileUtils {
@@ -102,19 +102,19 @@ export class FileUtils {
         return configuredExtensions.includes(fileExtension);
     }
 
-    findExistingLeaf(file: TFile): any {
+    findExistingLeaf(file: TFile): WorkspaceLeaf | null {
         // Find existing leaf with this file
         const leaves = this.app.workspace.getLeavesOfType('markdown');
-        return leaves.find(leaf => (leaf.view as any)?.file?.path === file.path);
+        return leaves.find(leaf => (leaf.view as TextFileView)?.file?.path === file.path) || null;
     }
 
-    findEmptyLeaf(): any {
+    findEmptyLeaf(): WorkspaceLeaf | null {
         // Find empty leaf (new tab + icon)
         const emptyLeaves = this.app.workspace.getLeavesOfType('empty');
-        return emptyLeaves[0];
+        return emptyLeaves[0] || null;
     }
 
-    revealOrOpenFile(file: TFile, openViewState?: any, forceNewTab?: boolean): Promise<void> {
+    revealOrOpenFile(file: TFile, openViewState?: OpenViewState, forceNewTab?: boolean): Promise<void> {
         // If forcing new tab (like explicit commands), always open new
         if (forceNewTab) {
             const newLeaf = this.app.workspace.getLeaf('tab');

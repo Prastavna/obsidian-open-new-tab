@@ -1,16 +1,16 @@
-import { TFile, Notice, WorkspaceLeaf } from 'obsidian';
+import { TFile, Notice, WorkspaceLeaf, OpenViewState } from 'obsidian';
 import { FileUtils } from './utils';
-import { OpenInNewTabSettings, ExtendedApp } from './types';
+import { OpenInNewTabSettings, ExtendedApp, FileExplorerView, SearchView, ExtendedWorkspace, QuickSwitcherModalConstructor } from './types';
 
 export class OverrideManager {
     private app: ExtendedApp;
     private settings: OpenInNewTabSettings;
     private fileUtils: FileUtils;
-    private originalOpenFile: any;
-    private originalOpenLinkText: any;
-    private fileExplorerHandler: any;
+    private originalOpenFile: ((file: TFile, openViewState?: OpenViewState) => Promise<void>) | null;
+    private originalOpenLinkText: ((linktext: string, sourcePath: string, newLeaf?: boolean, openViewState?: OpenViewState) => Promise<void>) | null;
+    private fileExplorerHandler: MutationObserver | null;
 
-    constructor(app: ExtendedApp, plugin: any, settings: OpenInNewTabSettings, fileUtils: FileUtils) {
+    constructor(app: ExtendedApp, settings: OpenInNewTabSettings, fileUtils: FileUtils) {
         this.app = app;
         this.settings = settings;
         this.fileUtils = fileUtils;
@@ -27,7 +27,7 @@ export class OverrideManager {
         this.originalOpenLinkText = workspace.openLinkText.bind(workspace);
 
         // Override openLinkText method
-        workspace.openLinkText = async (linktext: string, sourcePath: string, newLeaf?: boolean, openViewState?: any) => {
+        workspace.openLinkText = async (linktext: string, sourcePath: string, newLeaf?: boolean, openViewState?: OpenViewState) => {
             // Only override if not already forcing new leaf
             if (!newLeaf && this.fileUtils.shouldOpenInNewTab(linktext, sourcePath)) {
                 newLeaf = true;
@@ -36,7 +36,7 @@ export class OverrideManager {
                 }
             }
 
-            return this.originalOpenLinkText(linktext, sourcePath, newLeaf, openViewState);
+            return this.originalOpenLinkText!(linktext, sourcePath, newLeaf, openViewState);
         };
     }
 
@@ -44,10 +44,10 @@ export class OverrideManager {
         const workspace = this.app.workspace;
 
         // Store original openFile method
-        this.originalOpenFile = (workspace as any).openFile?.bind(workspace);
+        this.originalOpenFile = (workspace as ExtendedWorkspace).openFile?.bind(workspace);
 
         // Override openFile method
-        (workspace as any).openFile = async (file: TFile, openViewState?: any) => {
+        (workspace as ExtendedWorkspace).openFile = async (file: TFile, openViewState?: OpenViewState) => {
             if (this.fileUtils.shouldOpenFileInNewTab(file)) {
                 // Use smart tab management
                 const emptyLeaf = this.fileUtils.findEmptyLeaf();
@@ -73,7 +73,7 @@ export class OverrideManager {
                     return newLeaf.openFile(file, openViewState);
                 }
             }
-            return this.originalOpenFile(file, openViewState);
+            return this.originalOpenFile!(file, openViewState);
         };
     }
 
@@ -89,7 +89,7 @@ export class OverrideManager {
         const fileExplorers = this.app.workspace.getLeavesOfType('file-explorer');
 
             fileExplorers.forEach((leaf: WorkspaceLeaf) => {
-            const fileExplorer = (leaf as any).view;
+                const fileExplorer = (leaf.view as unknown) as FileExplorerView;
             if (fileExplorer && fileExplorer.fileItems) {
                 // Override the file explorer's file opening behavior
                 // Patch the tree component's click handler
@@ -101,7 +101,7 @@ export class OverrideManager {
         this.app.workspace.on('layout-change', () => {
             const fileExplorers = this.app.workspace.getLeavesOfType('file-explorer');
         fileExplorers.forEach((leaf: WorkspaceLeaf) => {
-                const fileExplorer = (leaf as any).view;
+            const fileExplorer = (leaf.view as unknown) as FileExplorerView;
                 if (fileExplorer && !fileExplorer._newTabPatched) {
                     this.patchFileExplorerClicks(fileExplorer);
                 }
@@ -109,7 +109,7 @@ export class OverrideManager {
         });
     }
 
-    private patchFileExplorerClicks(fileExplorer: any) {
+    private patchFileExplorerClicks(fileExplorer: FileExplorerView) {
         if (fileExplorer._newTabPatched) return;
 
         fileExplorer._newTabPatched = true;
@@ -167,7 +167,7 @@ export class OverrideManager {
         this.patchTreeItemClicks(fileExplorer);
     }
 
-    private patchTreeItemClicks(fileExplorer: any) {
+    private patchTreeItemClicks(fileExplorer: FileExplorerView) {
         // Monitor for tree item creation and patch their click handlers
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
@@ -256,7 +256,7 @@ export class OverrideManager {
         const searchLeaves = this.app.workspace.getLeavesOfType('search');
 
             searchLeaves.forEach((leaf: WorkspaceLeaf) => {
-            const searchView = (leaf as any).view;
+                const searchView = (leaf.view as unknown) as SearchView;
             if (searchView && searchView.resultDomLookup && !searchView._newTabPatched) {
                 this.patchSearchResults(searchView);
             }
@@ -267,7 +267,7 @@ export class OverrideManager {
 		const searchLeaves = this.app.workspace.getLeavesOfType('search');
         searchLeaves.forEach((leaf: WorkspaceLeaf) => {
 				console.log({leaf});
-                const searchView = (leaf as any).view;
+            const searchView = (leaf.view as unknown) as SearchView;
                 if (searchView && searchView.resultDomLookup && !searchView._newTabPatched) {
                     this.patchSearchResults(searchView);
                 }
@@ -275,16 +275,17 @@ export class OverrideManager {
         });
     }
 
-    private patchSearchResults(searchView: any) {
+    private patchSearchResults(searchView: SearchView) {
         if (searchView._newTabPatched) return;
 
         searchView._newTabPatched = true;
 
         // Store original method
-        const originalOnFileClick = searchView.onOpen?.bind(searchView);
+        const originalOnFileClick = searchView.onFileClick?.bind(searchView);
 
         // Override the file click handler
-        searchView.onOpen = async (file: TFile, event: MouseEvent) => {
+        if (searchView.onFileClick) {
+            searchView.onFileClick = async (file: TFile, event: MouseEvent) => {
 			console.log(file);
             // Check if we should open in new tab
             if (this.fileUtils.shouldOpenFileInNewTab(file, 'search')) {
@@ -320,17 +321,18 @@ export class OverrideManager {
             if (originalOnFileClick) {
                 return originalOnFileClick(file, event);
             }
-        };
+            };
+        }
     }
 
     overrideQuickSwitcher() {
         // Override the quick switcher modal
-        const originalQuickSwitcher = (this.app as any).internalPlugins?.plugins?.switcher?.instance?.QuickSwitcherModal;
+        const originalQuickSwitcher = (this.app as ExtendedApp).internalPlugins?.plugins?.switcher?.instance?.QuickSwitcherModal;
 
         if (originalQuickSwitcher) {
             // eslint-disable-next-line @typescript-eslint/no-this-alias
             const manager = this;
-            (this.app as any).internalPlugins.plugins.switcher.instance.QuickSwitcherModal = class extends originalQuickSwitcher {
+            (this.app as ExtendedApp).internalPlugins!.plugins.switcher!.instance!.QuickSwitcherModal = class extends (originalQuickSwitcher as QuickSwitcherModalConstructor) {
                 async openFile(file: TFile, newLeaf?: boolean) {
                     // Check if we should open in new tab
                     if (!newLeaf && manager.fileUtils.shouldOpenFileInNewTab(file, 'quickswitcher')) {
@@ -370,7 +372,7 @@ export class OverrideManager {
 
         // Restore original methods
         if (this.originalOpenFile) {
-            (workspace as any).openFile = this.originalOpenFile;
+            (workspace as ExtendedWorkspace).openFile = this.originalOpenFile!;
         }
 
         if (this.originalOpenLinkText) {
