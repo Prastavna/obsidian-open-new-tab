@@ -100,11 +100,17 @@ export class OpenInNewTabSettingTab extends PluginSettingTab {
         // Info section
         containerEl.createEl('h3', { text: 'Usage' });
         const infoEl = containerEl.createEl('div');
-        infoEl.innerHTML = `
-            <p><strong>Commands:</strong> Use the command palette (Ctrl/Cmd+P) to quickly toggle these settings.</p>
-            <p><strong>Open ALL files:</strong> When enabled (default), all files open in new tabs. When disabled, only specific file types and sources open in new tabs based on their settings.</p>
-            <p><strong>Individual Settings:</strong> Canvas, graph, search results, tagged files, and specified extensions can be configured to open in new tabs when "Open ALL files" is disabled.</p>
-            <p><strong>Tags & Extensions:</strong> Files with specified tags or extensions will always open in new tabs (overrides other settings).</p>
-        `;
+
+        const p1 = infoEl.createEl('p');
+        p1.createEl('strong', { text: 'Open ALL files:' });
+        p1.appendText(' When enabled (default), all files open in new tabs. When disabled, only specific file types and sources open in new tabs based on their settings.');
+
+        const p2 = infoEl.createEl('p');
+        p2.createEl('strong', { text: 'Individual Settings:' });
+        p2.appendText(' Canvas, graph, search results, tagged files, and specified extensions can be configured to open in new tabs when "Open ALL files" is disabled.');
+
+        const p3 = infoEl.createEl('p');
+        p3.createEl('strong', { text: 'Tags & Extensions:' });
+        p3.appendText(' Files with specified tags or extensions will always open in new tabs (overrides other settings).');
     }
 }
